@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Temple Vimana Classification</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        /* CSS INLINED */
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --text-light: #64748b;
+            --border: #e2e8f0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+        }
+
+        .highlight {
+            color: var(--primary);
+        }
+
+        p {
+            color: var(--text-light);
+        }
+
+        .upload-section {
+            background: var(--card-bg);
+            border: 2px dashed var(--border);
+            border-radius: 1rem;
+            padding: 4rem 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 2rem;
+        }
+
+        .upload-section:hover,
+        .upload-section.dragover {
+            border-color: var(--primary);
+            background-color: #eff6ff;
+        }
+
+        .upload-content svg {
+            margin-bottom: 1rem;
+            color: var(--text-light);
+        }
+
+        button {
+            display: block;
+            width: 100%;
+            max-width: 300px;
+            margin: 0 auto 2rem;
+            padding: 1rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        button:disabled {
+            background: var(--text-light);
+            cursor: not-allowed;
+        }
+
+        button:not(:disabled):hover {
+            background: var(--primary-hover);
+        }
+
+        .grid-display {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .card h3 {
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+
+        .card img {
+            width: 100%;
+            height: auto;
+            border-radius: 0.5rem;
+            border: 1px solid var(--border);
+        }
+
+        .caption {
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+        }
+
+        .prob-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            align-items: center;
+        }
+
+        .bar-container {
+            flex-grow: 1;
+            height: 8px;
+            background: var(--border);
+            border-radius: 4px;
+            margin: 0 1rem;
+            overflow: hidden;
+        }
+
+        .bar {
+            height: 100%;
+            background: var(--primary);
+            transition: width 0.5s ease-out;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        #error-msg {
+            color: #ef4444;
+            text-align: center;
+            background: #fef2f2;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 2rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>Temple Vimana <span class="highlight">Architect V3</span></h1>
+            <p>Upload a temple image to identify its architectural style (Nagara, Dravida, Vesara).</p>
+            <!-- Model Accuracy Badge -->
+            <div id="accuracy-badge" style="margin-top: 1.5rem; padding: 1rem; background: #f0fdf4; border: 1px solid #86efac; border-radius: 0.5rem; max-width: 500px; margin-left: auto; margin-right: auto;">
+                <p style="font-size: 0.9rem; color: #16a34a; margin: 0.25rem 0;"><strong>📊 Model Performance</strong></p>
+                <div id="accuracy-content" style="font-size: 0.85rem; color: #065f46;">
+                    <p>Classification Accuracy: <strong id="clf-acc">--</strong></p>
+                    <p>Segmentation IoU: <strong id="seg-iou">--</strong></p>
+                </div>
+            </div>
+        </header>
+
+        <main>
+            <!-- Upload Section -->
+            <div class="upload-section" id="drop-zone">
+                <input type="file" id="file-input" accept="image/*" hidden>
+                <div class="upload-content">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                    <p>Drag & Drop or <strong>Click to Upload</strong></p>
+                </div>
+            </div>
+
+            <!-- Analyze Button -->
+            <button id="predict-btn" disabled>Analyze Image</button>
+
+            <!-- Loading Spinner -->
+            <div id="loading" class="hidden">
+                <div class="spinner"></div>
+                <p style="text-align: center;">Analyzing temple structure...</p>
+            </div>
+
+            <!-- Error Message -->
+            <div id="error-msg" class="hidden"></div>
+
+            <!-- Results Section (Hidden Initially) -->
+            <div id="results" class="grid-display hidden">
+
+                <!-- Prediction Card -->
+                <div class="card" style="grid-column: 1 / -1;">
+                    <div style="text-align: center;">
+                        <span
+                            style="font-size: 0.9em; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em;">Detected
+                            Temple</span>
+                        <h2 id="pred-class" style="font-size: 2rem; color: #DC2626; margin: 0.25rem 0;">...</h2>
+
+                        <div style="margin-top: 1rem;">
+                            <span
+                                style="font-size: 0.9em; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em;">Architectural
+                                Style</span>
+                            <h2 id="pred-style" style="font-size: 1.5rem; color: #9333ea; margin: 0.25rem 0;">...</h2>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Segmentation Card -->
+                <div class="card">
+                    <h3>Segmentation Overlay</h3>
+                    <img id="seg-img" src="" alt="Segmentation Overlay">
+                    <p class="caption">Green overlay indicates the detected Vimana (Tower).</p>
+                </div>
+
+                <!-- Grad-CAM Card -->
+                <div class="card">
+                    <h3>Classifier Focus (Grad-CAM)</h3>
+                    <img id="cam-img" src="" alt="Grad-CAM">
+                    <p class="caption">Heatmap shows regions influencing the decision.</p>
+                </div>
+
+                <!-- Crop Card -->
+                <div class="card">
+                    <h3>Cropped Region</h3>
+                    <img id="crop-img" src="" alt="Cropped Input">
+                </div>
+
+                <!-- Confidence Card -->
+                <div class="card">
+                    <h3>Confidence Scores</h3>
+                    <div id="probs-table">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <div class="footer" style="text-align: center; color: #888; margin-top: 20px; font-size: 0.8em;">
+            Version 3.0 (Fixed UI)
+        </div>
+    </div>
+
+    <script>
+        /* JS INLINED */
+        
+        // Fetch and display model accuracy on page load
+        async function loadModelAccuracy() {
+            try {
+                const response = await fetch('/model-accuracy');
+                const metrics = await response.json();
+                
+                const clfAccEl = document.getElementById('clf-acc');
+                const segIouEl = document.getElementById('seg-iou');
+                
+                if (clfAccEl) {
+                    clfAccEl.innerText = `${(metrics.classifier_accuracy * 100).toFixed(1)}%`;
+                }
+                if (segIouEl) {
+                    segIouEl.innerText = `${(metrics.segmentation_iou * 100).toFixed(1)}%`;
+                }
+            } catch (err) {
+                console.warn('Could not load model accuracy metrics:', err);
+            }
+        }
+        
+        // Load metrics when page loads
+        document.addEventListener('DOMContentLoaded', loadModelAccuracy);
+        
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+        const predictBtn = document.getElementById('predict-btn');
+        const loading = document.getElementById('loading');
+        const results = document.getElementById('results');
+        const errorMsg = document.getElementById('error-msg');
+
+        let currentFile = null;
+
+        // Drag & Drop
+        dropZone.addEventListener('click', () => fileInput.click());
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('dragover');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            if (e.dataTransfer.files.length) {
+                handleFile(e.dataTransfer.files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length) {
+                handleFile(e.target.files[0]);
+            }
+        });
+
+        function handleFile(file) {
+            if (!file.type.startsWith('image/')) {
+                showError('Please upload an image file.');
+                return;
+            }
+            currentFile = file;
+
+            predictBtn.disabled = false;
+            predictBtn.innerText = `Analyze ${file.name}`;
+            errorMsg.classList.add('hidden');
+            results.classList.add('hidden');
+        }
+
+        predictBtn.addEventListener('click', async () => {
+            if (!currentFile) return;
+
+            setLoading(true);
+
+            const formData = new FormData();
+            formData.append('file', currentFile);
+
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    displayResults(data);
+                } else {
+                    showError(data.error || 'Server error occurred.');
+                }
+            } catch (err) {
+                showError('Network error. Ensure server is running.');
+                console.error(err);
+            } finally {
+                setLoading(false);
+            }
+        });
+
+        function displayResults(data) {
+            results.classList.remove('hidden');
+
+            const predEl = document.getElementById('pred-class');
+            const styleEl = document.getElementById('pred-style');
+
+            predEl.innerText = data.class;
+            styleEl.innerText = data.detected_style;
+
+            if (data.class.includes("Not a Temple")) {
+                predEl.style.color = "#dc2626"; // Red
+                styleEl.style.color = "#dc2626";
+            } else {
+                predEl.style.color = "#2563eb"; // Blue
+                styleEl.style.color = "#9333ea"; // Purple
+            }
+
+            if (data.segmentation_overlay) {
+                document.getElementById('seg-img').src = `data:image/jpeg;base64,${data.segmentation_overlay}`;
+            }
+            if (data.gradcam) {
+                document.getElementById('cam-img').src = `data:image/jpeg;base64,${data.gradcam}`;
+            }
+            if (data.cropped_region) {
+                document.getElementById('crop-img').src = `data:image/jpeg;base64,${data.cropped_region}`;
+            }
+
+            const table = document.getElementById('probs-table');
+            table.innerHTML = '';
+
+            // Sort probs
+            const sorted = Object.entries(data.probabilities).sort(([, a], [, b]) => b - a);
+
+            sorted.forEach(([label, prob]) => {
+                const percent = (prob * 100).toFixed(1);
+                const row = document.createElement('div');
+                row.className = 'prob-row';
+                row.innerHTML = `
+                <span style="width: 140px; font-weight: 500; font-size: 0.9em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${label}</span>
+                <div class="bar-container">
+                    <div class="bar" style="width: ${percent}%"></div>
+                </div>
+                <span style="width: 40px; text-align: right;">${percent}%</span>
+            `;
+                table.appendChild(row);
+            });
+        }
+
+        function setLoading(isLoading) {
+            if (isLoading) {
+                loading.classList.remove('hidden');
+                results.classList.add('hidden');
+                predictBtn.disabled = true;
+                dropZone.style.opacity = '0.5';
+            } else {
+                loading.classList.add('hidden');
+                predictBtn.disabled = false;
+                dropZone.style.opacity = '1';
+            }
+        }
+
+        function showError(msg) {
+            errorMsg.innerText = msg;
+            errorMsg.classList.remove('hidden');
+        }
+    </script>
+</body>
+
+</html>

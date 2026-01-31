@@ -1,0 +1,13 @@
+flask
+torch>=2.0.0
+torchvision>=0.15.0
+numpy
+opencv-python-headless
+pillow
+albumentations
+matplotlib
+tqdm
+scikit-learn
+segmentation-models-pytorch
+timm
+grad-cam

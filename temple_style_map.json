@@ -1,0 +1,52 @@
+[
+  {
+    "temple": "Amarnath Cave Temple",
+    "style": "Cave / Natural",
+    "count": 77
+  },
+  {
+    "temple": "Golden Temple",
+    "style": "Sikh Architecture",
+    "count": 99
+  },
+  {
+    "temple": "Kashi Vishwanath Temple",
+    "style": "Nagara",
+    "count": 91
+  },
+  {
+    "temple": "Kedarnath Temple",
+    "style": "Nagara",
+    "count": 100
+  },
+  {
+    "temple": "Meenakshi Amman Temple",
+    "style": "Dravida",
+    "count": 96
+  },
+  {
+    "temple": "Mumbai Siddhivinayak Temple",
+    "style": "Modern / Nagara Influence",
+    "count": 90
+  },
+  {
+    "temple": "Sabarimala Ayyappa Temple",
+    "style": "Kerala Style (Dravida)",
+    "count": 99
+  },
+  {
+    "temple": "Shri Jagannath Temple",
+    "style": "Kalinga (Nagara)",
+    "count": 85
+  },
+  {
+    "temple": "Shri Shirdi Sai Baba Temple",
+    "style": "Modern",
+    "count": 75
+  },
+  {
+    "temple": "Tirumala Tirupati Venkateswara Temple",
+    "style": "Dravida",
+    "count": 88
+  }
+]

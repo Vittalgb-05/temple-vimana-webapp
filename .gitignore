@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual Environment
+.venv/
+venv/
+env/
+
+# IDEs
+.vscode/
+.idea/
+
+# Checkpoints (often too large for Git)
+checkpoints/
+
+# OS
+Thumbs.db
+Desktop.ini
